@@ -14,9 +14,7 @@ import {
   MoveDirection,
 } from "./types"
 
-export class WorkingSetsProvider
-  implements vscode.TreeDataProvider<WorkingSetsNode>
-{
+export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsNode> {
   private static readonly WORKING_SETS_KEY = "workingSets"
 
   private _onDidChangeTreeData: vscode.EventEmitter<
@@ -53,15 +51,15 @@ export class WorkingSetsProvider
           },
           () => {
             vscode.window.showErrorMessage(
-              "There was a problem initializing the extension"
+              "There was a problem initializing the extension",
             )
-          }
+          },
         )
     }
   }
 
   getParent(
-    workingSetsNode: WorkingSetsNode
+    workingSetsNode: WorkingSetsNode,
   ): vscode.ProviderResult<WorkingSetsNode> {
     if (workingSetsNode instanceof WorkingSetItem) {
       return this.workspaceWorkingSets.get(workingSetsNode.parentId)
@@ -92,7 +90,7 @@ export class WorkingSetsProvider
     if (name) {
       if (this.workingSetExists(name)) {
         vscode.window.showInformationMessage(
-          "A working set with that name already exists"
+          "A working set with that name already exists",
         )
       } else {
         const uniqueId = randomBytes(16).toString("hex")
@@ -101,13 +99,13 @@ export class WorkingSetsProvider
         if (withOpenEditors) {
           workingSetItems = this.getOpenTextEditorsPaths().map(
             (filePath) =>
-              new WorkingSetItem(vscode.Uri.file(filePath), uniqueId)
+              new WorkingSetItem(vscode.Uri.file(filePath), uniqueId),
           )
         } else if (initialWorkingSetItemFilePath) {
           workingSetItems = [
             new WorkingSetItem(
               vscode.Uri.file(initialWorkingSetItemFilePath),
-              uniqueId
+              uniqueId,
             ),
           ]
         } else {
@@ -120,13 +118,13 @@ export class WorkingSetsProvider
           withOpenEditors || initialWorkingSetItemFilePath
             ? vscode.TreeItemCollapsibleState.Expanded
             : vscode.TreeItemCollapsibleState.Collapsed,
-          workingSetItems
+          workingSetItems,
         )
 
         this.workspaceWorkingSets.set(uniqueId, workingSet)
         vscode.workspace.getConfiguration("workingSets").showNotifications &&
           vscode.window.showInformationMessage(
-            `"${name}" working set successfully created`
+            `"${name}" working set successfully created`,
           )
         if (withOpenEditors || initialWorkingSetItemFilePath) {
           await vscode.commands.executeCommand("workingSets.expand", workingSet)
@@ -146,7 +144,7 @@ export class WorkingSetsProvider
       name && this.deleteWorkingSet(name)
     } else {
       vscode.window.showInformationMessage(
-        "There are no working sets to delete"
+        "There are no working sets to delete",
       )
     }
   }
@@ -163,7 +161,7 @@ export class WorkingSetsProvider
           this.create({ withOpenEditors: true })
         } else {
           const workingSet = this.workspaceWorkingSets.get(
-            this.getWorkingSetIDByName(workingSetNameOrNew)
+            this.getWorkingSetIDByName(workingSetNameOrNew),
           )
 
           workingSet?.setItems(...this.getOpenTextEditorsPaths())
@@ -193,7 +191,7 @@ export class WorkingSetsProvider
             this.create({ initialWorkingSetItemFilePath: activeEditorFilePath })
           } else {
             const workingSet = this.workspaceWorkingSets.get(
-              this.getWorkingSetIDByName(workingSetNameOrNew)
+              this.getWorkingSetIDByName(workingSetNameOrNew),
             )
 
             workingSet?.setItems(activeEditorFilePath)
@@ -222,7 +220,7 @@ export class WorkingSetsProvider
             this.create({ initialWorkingSetItemFilePath: fsPath })
           } else {
             const workingSet = this.workspaceWorkingSets.get(
-              this.getWorkingSetIDByName(workingSetNameOrNew)
+              this.getWorkingSetIDByName(workingSetNameOrNew),
             )
 
             workingSet?.setItems(fsPath)
@@ -234,7 +232,7 @@ export class WorkingSetsProvider
       }
     } else {
       vscode.window.showInformationMessage(
-        "You are trying to add a resource that is not a file. Please try again."
+        "You are trying to add a resource that is not a file. Please try again.",
       )
     }
   }
@@ -250,12 +248,12 @@ export class WorkingSetsProvider
         this.workingSetsNames,
         {
           placeHolder: "Which working set do you want to remove a file from?",
-        }
+        },
       )
 
       if (workingSetName) {
         const workingSet = this.workspaceWorkingSets.get(
-          this.getWorkingSetIDByName(workingSetName)
+          this.getWorkingSetIDByName(workingSetName),
         )
 
         if (workingSet) {
@@ -264,7 +262,7 @@ export class WorkingSetsProvider
             {
               placeHolder: `Which file do you want to remove from "${workingSetName}"?`,
               matchOnDetail: true,
-            }
+            },
           )
 
           if (filePath?.detail) {
@@ -275,7 +273,7 @@ export class WorkingSetsProvider
       }
     } else {
       vscode.window.showInformationMessage(
-        "There are no working sets to remove files from"
+        "There are no working sets to remove files from",
       )
     }
   }
@@ -288,12 +286,12 @@ export class WorkingSetsProvider
         this.workingSetsNames,
         {
           placeHolder: "Which working set do you want to open?",
-        }
+        },
       )
 
       if (workingSetName) {
         const workingSet = this.workspaceWorkingSets.get(
-          this.getWorkingSetIDByName(workingSetName)
+          this.getWorkingSetIDByName(workingSetName),
         )
         workingSet && this.openWorkingSetItems(workingSet)
       }
@@ -307,8 +305,8 @@ export class WorkingSetsProvider
           return sortType === SortType.ASCENDING
             ? workingSetA[1].label.localeCompare(workingSetB[1].label)
             : workingSetB[1].label.localeCompare(workingSetA[1].label)
-        }
-      )
+        },
+      ),
     )
     this.updateWorkspaceState()
   }
@@ -321,12 +319,12 @@ export class WorkingSetsProvider
         this.workingSetsNames,
         {
           placeHolder: "Which working set do you want to sort?",
-        }
+        },
       )
 
       if (workingSetName) {
         const workingSet = this.workspaceWorkingSets.get(
-          this.getWorkingSetIDByName(workingSetName)
+          this.getWorkingSetIDByName(workingSetName),
         )
         workingSet && this.sortWorkingSetFiles(workingSet, sortType)
       }
@@ -354,7 +352,7 @@ export class WorkingSetsProvider
     const fileName = join(
       workspaceFolderPath || ".",
       ".vscode",
-      "working_sets.json"
+      "working_sets.json",
     )
 
     if (!existsSync(fileName)) {
@@ -366,18 +364,18 @@ export class WorkingSetsProvider
     } catch (err) {
       const errorMessage = err instanceof Error ? `: ${err.message}` : ""
       vscode.window.showErrorMessage(
-        `Could not load working sets from ${fileName}${errorMessage}`
+        `Could not load working sets from ${fileName}${errorMessage}`,
       )
       return
     }
   }
 
   private loadWorkingSets(
-    context: vscode.ExtensionContext
+    context: vscode.ExtensionContext,
   ): StringifyableWorkspaceWorkingSets | undefined {
     const saveWorkingSetsInWorkspace: boolean | undefined =
       vscode.workspace.getConfiguration(
-        "workingSets"
+        "workingSets",
       ).saveWorkingSetsInWorkspace
     const hasWorkspaceFolder =
       vscode.workspace.workspaceFolders &&
@@ -390,7 +388,7 @@ export class WorkingSetsProvider
     if (storedWorkingSets) {
       this.workspaceWorkingSets =
         this.getWorkspaceWorkingSetsFromJSONStringifyableObject(
-          storedWorkingSets
+          storedWorkingSets,
         )
       this.refresh()
     }
@@ -421,7 +419,7 @@ export class WorkingSetsProvider
   }
 
   private getWorkspaceWorkingSetsFromJSONStringifyableObject(
-    data: StringifyableWorkspaceWorkingSets
+    data: StringifyableWorkspaceWorkingSets,
   ): WorkspaceWorkingSets {
     const result: WorkspaceWorkingSets = new Map()
 
@@ -433,9 +431,9 @@ export class WorkingSetsProvider
           label,
           collapsibleState,
           filePaths.map(
-            (filePath) => new WorkingSetItem(vscode.Uri.file(filePath), id)
-          )
-        )
+            (filePath) => new WorkingSetItem(vscode.Uri.file(filePath), id),
+          ),
+        ),
       )
     }
 
@@ -451,7 +449,7 @@ export class WorkingSetsProvider
       this.workspaceWorkingSets.delete(this.getWorkingSetIDByName(name))
       vscode.workspace.getConfiguration("workingSets").showNotifications &&
         vscode.window.showInformationMessage(
-          `"${name}" working set successfully deleted`
+          `"${name}" working set successfully deleted`,
         )
       this.updateWorkspaceState()
     }
@@ -460,7 +458,7 @@ export class WorkingSetsProvider
       const confirmation = await vscode.window.showInformationMessage(
         `Are you sure you want to delete "${name}"?`,
         { modal: true },
-        "Yes"
+        "Yes",
       )
       if (confirmation === "Yes") {
         performDelete()
@@ -472,7 +470,7 @@ export class WorkingSetsProvider
 
   private async addFilePathToWorkingSet(
     workingSet: WorkingSet,
-    filePath: string
+    filePath: string,
   ) {
     this.workspaceWorkingSets.get(workingSet.id)?.setItems(filePath)
 
@@ -492,7 +490,7 @@ export class WorkingSetsProvider
       const fileName = join(
         workspaceFolders[0].uri.fsPath,
         ".vscode",
-        "working_sets.json"
+        "working_sets.json",
       )
 
       try {
@@ -510,20 +508,20 @@ export class WorkingSetsProvider
             JSON.stringify(
               this.getJSONStringifyableWorkspaceWorkingSets(),
               null,
-              "  "
-            )
+              "  ",
+            ),
           )
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? `: ${err.message}` : ""
         vscode.window.showErrorMessage(
-          `Could not save working sets to ${fileName}${errorMessage}`
+          `Could not save working sets to ${fileName}${errorMessage}`,
         )
       }
     } else {
       await this.context.workspaceState.update(
         WorkingSetsProvider.WORKING_SETS_KEY,
-        this.getJSONStringifyableWorkspaceWorkingSets()
+        this.getJSONStringifyableWorkspaceWorkingSets(),
       )
     }
     this.refresh()
@@ -552,7 +550,7 @@ export class WorkingSetsProvider
 
         return [...filePaths, ...tabGroupFilePaths]
       },
-      []
+      [],
     )
 
     return openTextEditors
@@ -570,7 +568,7 @@ export class WorkingSetsProvider
       }
     } else {
       vscode.window.showInformationMessage(
-        `"${workingSet.label}" does not have any items to open`
+        `"${workingSet.label}" does not have any items to open`,
       )
     }
   }
@@ -591,61 +589,61 @@ export class WorkingSetsExplorer {
     })
 
     vscode.commands.registerCommand("workingSets.create", () =>
-      workingSetsProvider.create()
+      workingSetsProvider.create(),
     )
     vscode.commands.registerCommand("workingSets.delete", (workingSet) =>
-      workingSetsProvider.delete(workingSet)
+      workingSetsProvider.delete(workingSet),
     )
     vscode.commands.registerCommand("workingSets.addOpenEditors", () =>
-      workingSetsProvider.addOpenEditors()
+      workingSetsProvider.addOpenEditors(),
     )
     vscode.commands.registerCommand(
       "workingSets.addActiveEditor",
-      (workingSet) => workingSetsProvider.addActiveEditor(workingSet)
+      (workingSet) => workingSetsProvider.addActiveEditor(workingSet),
     )
     vscode.commands.registerCommand("workingSets.openAll", (workingSet) =>
-      workingSetsProvider.openAllItems(workingSet)
+      workingSetsProvider.openAllItems(workingSet),
     )
     vscode.commands.registerCommand("workingSets.addFile", (fileUri) =>
-      workingSetsProvider.addFile(fileUri)
+      workingSetsProvider.addFile(fileUri),
     )
     vscode.commands.registerCommand(
       "workingSets.removeFile",
-      (workingSetItem) => workingSetsProvider.removeFile(workingSetItem)
+      (workingSetItem) => workingSetsProvider.removeFile(workingSetItem),
     )
     vscode.commands.registerCommand("workingSets.expand", (workingSet) =>
-      this.reveal(workingSet)
+      this.reveal(workingSet),
     )
     vscode.commands.registerCommand("workingSets.reload", () =>
-      workingSetsProvider.reload(context)
+      workingSetsProvider.reload(context),
     )
     vscode.commands.registerCommand(
       "workingSets.sortWorkingSetsAscending",
-      () => workingSetsProvider.sortWorkingSets(SortType.ASCENDING)
+      () => workingSetsProvider.sortWorkingSets(SortType.ASCENDING),
     )
     vscode.commands.registerCommand(
       "workingSets.sortWorkingSetsDescending",
-      () => workingSetsProvider.sortWorkingSets(SortType.DESCENDING)
+      () => workingSetsProvider.sortWorkingSets(SortType.DESCENDING),
     )
     vscode.commands.registerCommand(
       "workingSets.sortFilesAscending",
       (workingSet) =>
-        workingSetsProvider.sortFiles(workingSet, SortType.ASCENDING)
+        workingSetsProvider.sortFiles(workingSet, SortType.ASCENDING),
     )
     vscode.commands.registerCommand(
       "workingSets.sortFilesDescending",
       (workingSet) =>
-        workingSetsProvider.sortFiles(workingSet, SortType.DESCENDING)
+        workingSetsProvider.sortFiles(workingSet, SortType.DESCENDING),
     )
     vscode.commands.registerCommand(
       "workingSets.moveFileUp",
       (workingSetItem) =>
-        workingSetsProvider.moveFile(workingSetItem, MoveDirection.UP)
+        workingSetsProvider.moveFile(workingSetItem, MoveDirection.UP),
     )
     vscode.commands.registerCommand(
       "workingSets.moveFileDown",
       (workingSetItem) =>
-        workingSetsProvider.moveFile(workingSetItem, MoveDirection.DOWN)
+        workingSetsProvider.moveFile(workingSetItem, MoveDirection.DOWN),
     )
   }
 

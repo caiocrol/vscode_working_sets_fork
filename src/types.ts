@@ -11,7 +11,8 @@ type StringifyableWorkspaceWorkingSet = {
   filePaths: string[]
 }
 
-export type StringifyableWorkspaceWorkingSets = StringifyableWorkspaceWorkingSet[]
+export type StringifyableWorkspaceWorkingSets =
+  StringifyableWorkspaceWorkingSet[]
 
 export type WorkingSetsNode = WorkingSet | WorkingSetItem
 
@@ -25,7 +26,7 @@ export class WorkingSet extends vscode.TreeItem {
     public id: string,
     public label: string,
     public collapsibleState: vscode.TreeItemCollapsibleState,
-    private items: WorkingSetItem[] = []
+    private items: WorkingSetItem[] = [],
   ) {
     super(label, collapsibleState)
   }
@@ -43,7 +44,7 @@ export class WorkingSet extends vscode.TreeItem {
       ...this.items,
       ...newFilePaths.map(
         (newFilePath) =>
-          new WorkingSetItem(vscode.Uri.file(newFilePath), this.id)
+          new WorkingSetItem(vscode.Uri.file(newFilePath), this.id),
       ),
     ]
 
@@ -55,11 +56,11 @@ export class WorkingSet extends vscode.TreeItem {
   removeItem(filePath: string) {
     if (this.hasItem(filePath)) {
       this.items = this.items.filter(
-        ({ resourceUri: { fsPath } }) => fsPath !== filePath
+        ({ resourceUri: { fsPath } }) => fsPath !== filePath,
       )
       vscode.workspace.getConfiguration("workingSets").showNotifications &&
         vscode.window.showInformationMessage(
-          `"${basename(filePath)}" removed from "${this.label}"`
+          `"${basename(filePath)}" removed from "${this.label}"`,
         )
     }
   }
@@ -77,7 +78,7 @@ export class WorkingSet extends vscode.TreeItem {
 
   moveItem(filePath: string, direction: MoveDirection) {
     const index = this.items.findIndex(
-      ({ resourceUri: { fsPath } }) => fsPath === filePath
+      ({ resourceUri: { fsPath } }) => fsPath === filePath,
     )
     if (direction === MoveDirection.UP && index > 0) {
       ;[this.items[index - 1], this.items[index]] = [
@@ -106,7 +107,7 @@ export class WorkingSetItem extends vscode.TreeItem {
 
   constructor(
     public readonly resourceUri: vscode.Uri,
-    public readonly parentId: string
+    public readonly parentId: string,
   ) {
     super(resourceUri, vscode.TreeItemCollapsibleState.None)
 
