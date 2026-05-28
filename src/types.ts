@@ -48,9 +48,12 @@ export class WorkingSet extends vscode.TreeItem {
       ),
     ]
 
-    vscode.workspace.getConfiguration("workingSets").showNotifications &&
-      newFilePaths.length &&
+    if (
+      vscode.workspace.getConfiguration("workingSets").showNotifications &&
+      newFilePaths.length
+    ) {
       vscode.window.showInformationMessage(`File(s) added to "${this.label}"`)
+    }
   }
 
   removeItem(filePath: string) {
@@ -58,10 +61,11 @@ export class WorkingSet extends vscode.TreeItem {
       this.items = this.items.filter(
         ({ resourceUri: { fsPath } }) => fsPath !== filePath,
       )
-      vscode.workspace.getConfiguration("workingSets").showNotifications &&
+      if (vscode.workspace.getConfiguration("workingSets").showNotifications) {
         vscode.window.showInformationMessage(
           `"${basename(filePath)}" removed from "${this.label}"`,
         )
+      }
     }
   }
 

@@ -122,10 +122,11 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
         )
 
         this.workspaceWorkingSets.set(uniqueId, workingSet)
-        vscode.workspace.getConfiguration("workingSets").showNotifications &&
+        if (vscode.workspace.getConfiguration("workingSets").showNotifications) {
           vscode.window.showInformationMessage(
             `"${name}" working set successfully created`,
           )
+        }
         if (withOpenEditors || initialWorkingSetItemFilePath) {
           await vscode.commands.executeCommand("workingSets.expand", workingSet)
         }
@@ -141,7 +142,9 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
       const name = await vscode.window.showQuickPick(this.workingSetsNames, {
         placeHolder: "Which working set do you want to delete?",
       })
-      name && this.deleteWorkingSet(name)
+      if (name) {
+        this.deleteWorkingSet(name)
+      }
     } else {
       vscode.window.showInformationMessage(
         "There are no working sets to delete",
@@ -293,7 +296,9 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
         const workingSet = this.workspaceWorkingSets.get(
           this.getWorkingSetIDByName(workingSetName),
         )
-        workingSet && this.openWorkingSetItems(workingSet)
+        if (workingSet) {
+          this.openWorkingSetItems(workingSet)
+        }
       }
     }
   }
@@ -326,7 +331,9 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
         const workingSet = this.workspaceWorkingSets.get(
           this.getWorkingSetIDByName(workingSetName),
         )
-        workingSet && this.sortWorkingSetFiles(workingSet, sortType)
+        if (workingSet) {
+          this.sortWorkingSetFiles(workingSet, sortType)
+        }
       }
     }
   }
@@ -447,10 +454,11 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
   private async deleteWorkingSet(name: string) {
     const performDelete = () => {
       this.workspaceWorkingSets.delete(this.getWorkingSetIDByName(name))
-      vscode.workspace.getConfiguration("workingSets").showNotifications &&
+      if (vscode.workspace.getConfiguration("workingSets").showNotifications) {
         vscode.window.showInformationMessage(
           `"${name}" working set successfully deleted`,
         )
+      }
       this.updateWorkspaceState()
     }
 

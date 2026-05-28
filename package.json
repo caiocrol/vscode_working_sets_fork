@@ -250,7 +250,7 @@
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src",
     "package": "vsce package",
     "pretest": "npm run test-compile && npm run lint",
     "prettier": "prettier --write src",
@@ -264,15 +264,14 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.9.1",
     "@types/vscode": "^1.120.0",
-    "@typescript-eslint/eslint-plugin": "^5.48.1",
-    "@typescript-eslint/parser": "^5.48.1",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.9.1",
     "esbuild": "^0.28.0",
-    "eslint": "^8.31.0",
+    "eslint": "^10.4.0",
     "glob": "^13.0.6",
     "mocha": "^11.7.6",
     "prettier": "^3.8.3",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.0"
   }
 }
