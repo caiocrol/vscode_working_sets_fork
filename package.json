@@ -276,9 +276,8 @@
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/glob": "^8.0.0",
-    "@types/mocha": "^10.0.1",
-    "@types/node": "^18.11.18",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.9.1",
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
@@ -286,7 +285,7 @@
     "esbuild": "^0.28.0",
     "eslint": "^8.31.0",
     "glob": "^13.0.6",
-    "mocha": "^10.2.0",
+    "mocha": "^11.7.6",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "vscode-test": "^1.6.1"
