@@ -1,16 +1,16 @@
 {
-  "name": "working-sets",
-  "displayName": "Working Sets",
-  "description": "Switch between working sets of open files with ease",
+  "name": "working-sets-plus",
+  "displayName": "Working Sets Plus",
+  "description": "Switch between working sets of open files with ease (persists entries across branches)",
   "repository": {
     "type": "git",
     "url": "https://github.com/bernardop/vscode-working-sets"
   },
   "version": "2.0.1",
-  "publisher": "bernardop",
+  "publisher": "caiocrol",
   "packageManager": "pnpm@11.1.3",
   "engines": {
-    "vscode": "^1.120.0"
+    "vscode": "^1.105.0"
   },
   "license": "SEE LICENSE IN LICENSE.md",
   "categories": [
@@ -21,220 +21,220 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "working-sets",
-          "title": "Working Sets",
+          "id": "working-sets-plus",
+          "title": "Working Sets Plus",
           "icon": "assets/briefcase.svg"
         }
       ]
     },
     "views": {
-      "working-sets": [
+      "working-sets-plus": [
         {
-          "id": "workingSets",
-          "name": "Working Sets"
+          "id": "workingSetsPlus",
+          "name": "Working Sets Plus"
         }
       ]
     },
     "menus": {
       "view/title": [
         {
-          "command": "workingSets.create",
-          "when": "view == workingSets",
+          "command": "workingSetsPlus.create",
+          "when": "view == workingSetsPlus",
           "group": "navigation"
         },
         {
-          "command": "workingSets.addOpenEditors",
-          "when": "view == workingSets",
+          "command": "workingSetsPlus.addOpenEditors",
+          "when": "view == workingSetsPlus",
           "group": "navigation"
         },
         {
-          "command": "workingSets.reload",
-          "when": "view == workingSets",
+          "command": "workingSetsPlus.reload",
+          "when": "view == workingSetsPlus",
           "group": "navigation"
         },
         {
-          "command": "workingSets.sortWorkingSetsAscending",
-          "when": "view == workingSets"
+          "command": "workingSetsPlus.sortWorkingSetsAscending",
+          "when": "view == workingSetsPlus"
         },
         {
-          "command": "workingSets.sortWorkingSetsDescending",
-          "when": "view == workingSets"
+          "command": "workingSetsPlus.sortWorkingSetsDescending",
+          "when": "view == workingSetsPlus"
         }
       ],
       "view/item/context": [
         {
-          "command": "workingSets.addActiveEditor",
-          "when": "view == workingSets && viewItem == workingSet",
+          "command": "workingSetsPlus.addActiveEditor",
+          "when": "view == workingSetsPlus && viewItem == workingSet",
           "group": "inline@2"
         },
         {
-          "command": "workingSets.openAll",
-          "when": "view == workingSets && viewItem == workingSet",
+          "command": "workingSetsPlus.openAll",
+          "when": "view == workingSetsPlus && viewItem == workingSet",
           "group": "inline@1"
         },
         {
-          "command": "workingSets.delete",
-          "when": "view == workingSets && viewItem == workingSet",
+          "command": "workingSetsPlus.delete",
+          "when": "view == workingSetsPlus && viewItem == workingSet",
           "group": "inline@3"
         },
         {
-          "command": "workingSets.removeFile",
-          "when": "view == workingSets && viewItem == workingSetItem",
+          "command": "workingSetsPlus.removeFile",
+          "when": "view == workingSetsPlus && viewItem == workingSetItem",
           "group": "inline"
         },
         {
-          "command": "workingSets.sortFilesAscending",
-          "when": "view == workingSets && viewItem == workingSet",
+          "command": "workingSetsPlus.sortFilesAscending",
+          "when": "view == workingSetsPlus && viewItem == workingSet",
           "group": "inline@4"
         },
         {
-          "command": "workingSets.sortFilesDescending",
-          "when": "view == workingSets && viewItem == workingSet",
+          "command": "workingSetsPlus.sortFilesDescending",
+          "when": "view == workingSetsPlus && viewItem == workingSet",
           "group": "inline@5"
         },
         {
-          "command": "workingSets.moveFileUp",
-          "when": "view == workingSets && viewItem == workingSetItem",
+          "command": "workingSetsPlus.moveFileUp",
+          "when": "view == workingSetsPlus && viewItem == workingSetItem",
           "group": "inline"
         },
         {
-          "command": "workingSets.moveFileDown",
-          "when": "view == workingSets && viewItem == workingSetItem",
+          "command": "workingSetsPlus.moveFileDown",
+          "when": "view == workingSetsPlus && viewItem == workingSetItem",
           "group": "inline"
         }
       ],
       "editor/title/context": [
         {
-          "command": "workingSets.addFile",
-          "group": "workingSets",
+          "command": "workingSetsPlus.addFile",
+          "group": "workingSetsPlus",
           "when": "resourceScheme == file"
         }
       ],
       "explorer/context": [
         {
-          "command": "workingSets.addFile",
-          "group": "workingSets",
+          "command": "workingSetsPlus.addFile",
+          "group": "workingSetsPlus",
           "when": "!explorerResourceIsFolder"
         }
       ],
       "commandPalette": [
         {
-          "command": "workingSets.addFile",
+          "command": "workingSetsPlus.addFile",
           "when": "false"
         },
         {
-          "command": "workingSets.moveFileUp",
+          "command": "workingSetsPlus.moveFileUp",
           "when": "false"
         },
         {
-          "command": "workingSets.moveFileDown",
+          "command": "workingSetsPlus.moveFileDown",
           "when": "false"
         }
       ]
     },
     "commands": [
       {
-        "command": "workingSets.create",
+        "command": "workingSetsPlus.create",
         "title": "Create",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(add)"
       },
       {
-        "command": "workingSets.addOpenEditors",
+        "command": "workingSetsPlus.addOpenEditors",
         "title": "Add All Open Editors to Working Set",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(save-all)"
       },
       {
-        "command": "workingSets.delete",
+        "command": "workingSetsPlus.delete",
         "title": "Delete",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(trash)"
       },
       {
-        "command": "workingSets.addActiveEditor",
+        "command": "workingSetsPlus.addActiveEditor",
         "title": "Add Active Editor to Working Set",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(file-add)"
       },
       {
-        "command": "workingSets.removeFile",
+        "command": "workingSetsPlus.removeFile",
         "title": "Remove File from Working Set",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(remove-close)"
       },
       {
-        "command": "workingSets.openAll",
+        "command": "workingSetsPlus.openAll",
         "title": "Open All Files in Working Set",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(files)"
       },
       {
-        "command": "workingSets.addFile",
+        "command": "workingSetsPlus.addFile",
         "title": "Add File to Working Set",
-        "category": "Working Sets"
+        "category": "Working Sets Plus"
       },
       {
-        "command": "workingSets.reload",
+        "command": "workingSetsPlus.reload",
         "title": "Reload",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(refresh)"
       },
       {
-        "command": "workingSets.sortWorkingSetsAscending",
+        "command": "workingSetsPlus.sortWorkingSetsAscending",
         "title": "Sort Working Sets in Ascending Order",
-        "category": "Working Sets"
+        "category": "Working Sets Plus"
       },
       {
-        "command": "workingSets.sortWorkingSetsDescending",
+        "command": "workingSetsPlus.sortWorkingSetsDescending",
         "title": "Sort Working Sets in Descending Order",
-        "category": "Working Sets"
+        "category": "Working Sets Plus"
       },
       {
-        "command": "workingSets.sortFilesAscending",
+        "command": "workingSetsPlus.sortFilesAscending",
         "title": "Sort Files in Ascending Order",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": {
           "light": "assets/icons/sort-alpha-down.svg",
           "dark": "assets/icons/sort-alpha-down-dark.svg"
         }
       },
       {
-        "command": "workingSets.sortFilesDescending",
+        "command": "workingSetsPlus.sortFilesDescending",
         "title": "Sort Files in Descending Order",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": {
           "light": "assets/icons/sort-alpha-down-alt.svg",
           "dark": "assets/icons/sort-alpha-down-alt-dark.svg"
         }
       },
       {
-        "command": "workingSets.moveFileUp",
+        "command": "workingSetsPlus.moveFileUp",
         "title": "Move file up in the working set",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(arrow-up)"
       },
       {
-        "command": "workingSets.moveFileDown",
+        "command": "workingSetsPlus.moveFileDown",
         "title": "Move file down in the working set",
-        "category": "Working Sets",
+        "category": "Working Sets Plus",
         "icon": "$(arrow-down)"
       }
     ],
     "configuration": {
-      "title": "Working Sets",
+      "title": "Working Sets Plus",
       "properties": {
-        "workingSets.confirmOnDelete": {
+        "workingSetsPlus.confirmOnDelete": {
           "type": "boolean",
           "default": true,
           "description": "Show confirmation popup when deleting working sets"
         },
-        "workingSets.saveWorkingSetsInWorkspace": {
+        "workingSetsPlus.saveWorkingSetsInWorkspace": {
           "type": "boolean",
           "default": false,
           "description": "Save (and restore) working sets locally in the current workspace (.vscode directory) instead of globally"
         },
-        "workingSets.showNotifications": {
+        "workingSetsPlus.showNotifications": {
           "type": "boolean",
           "default": false,
           "description": "Show confirmation notifications after every action"
@@ -264,7 +264,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.9.1",
-    "@types/vscode": "^1.120.0",
+    "@types/vscode": "^1.105.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.9.1",

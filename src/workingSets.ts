@@ -15,7 +15,7 @@ import {
 } from "./types"
 
 export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsNode> {
-  private static readonly WORKING_SETS_KEY = "workingSets"
+  private static readonly WORKING_SETS_KEY = "workingSetsPlus"
 
   private _onDidChangeTreeData: vscode.EventEmitter<
     WorkingSetsNode | undefined
@@ -73,7 +73,7 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
   }
 
   getChildren(workingSet?: WorkingSet): WorkingSetsNode[] {
-    return workingSet ? workingSet.getItems() : this.workingSets
+    return workingSet ? workingSet.getAllItems() : this.workingSets
   }
 
   reload(context: vscode.ExtensionContext) {
@@ -122,13 +122,18 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
         )
 
         this.workspaceWorkingSets.set(uniqueId, workingSet)
-        if (vscode.workspace.getConfiguration("workingSets").showNotifications) {
+        if (
+          vscode.workspace.getConfiguration("workingSetsPlus").showNotifications
+        ) {
           vscode.window.showInformationMessage(
             `"${name}" working set successfully created`,
           )
         }
         if (withOpenEditors || initialWorkingSetItemFilePath) {
-          await vscode.commands.executeCommand("workingSets.expand", workingSet)
+          await vscode.commands.executeCommand(
+            "workingSetsPlus.expand",
+            workingSet,
+          )
         }
         this.updateWorkspaceState()
       }
@@ -359,7 +364,7 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
     const fileName = join(
       workspaceFolderPath || ".",
       ".vscode",
-      "working_sets.json",
+      "working_sets_plus.json",
     )
 
     if (!existsSync(fileName)) {
@@ -382,7 +387,7 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
   ): StringifyableWorkspaceWorkingSets | undefined {
     const saveWorkingSetsInWorkspace: boolean | undefined =
       vscode.workspace.getConfiguration(
-        "workingSets",
+        "workingSetsPlus",
       ).saveWorkingSetsInWorkspace
     const hasWorkspaceFolder =
       vscode.workspace.workspaceFolders &&
@@ -417,7 +422,7 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
         label: workingSet.label,
         collapsibleState: workingSet.collapsibleState,
         filePaths: workingSet
-          .getItems()
+          .getAllItems()
           .map(({ resourceUri: { fsPath } }) => fsPath),
       })
     }
@@ -430,13 +435,13 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
   ): WorkspaceWorkingSets {
     const result: WorkspaceWorkingSets = new Map()
 
-    for (const { id, label, collapsibleState, filePaths } of data) {
+    for (const { id, label, filePaths } of data) {
       result.set(
         id,
         new WorkingSet(
           id,
           label,
-          collapsibleState,
+          vscode.TreeItemCollapsibleState.Collapsed,
           filePaths.map(
             (filePath) => new WorkingSetItem(vscode.Uri.file(filePath), id),
           ),
@@ -454,7 +459,9 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
   private async deleteWorkingSet(name: string) {
     const performDelete = () => {
       this.workspaceWorkingSets.delete(this.getWorkingSetIDByName(name))
-      if (vscode.workspace.getConfiguration("workingSets").showNotifications) {
+      if (
+        vscode.workspace.getConfiguration("workingSetsPlus").showNotifications
+      ) {
         vscode.window.showInformationMessage(
           `"${name}" working set successfully deleted`,
         )
@@ -462,7 +469,7 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
       this.updateWorkspaceState()
     }
 
-    if (vscode.workspace.getConfiguration("workingSets").confirmOnDelete) {
+    if (vscode.workspace.getConfiguration("workingSetsPlus").confirmOnDelete) {
       const confirmation = await vscode.window.showInformationMessage(
         `Are you sure you want to delete "${name}"?`,
         { modal: true },
@@ -482,7 +489,7 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
   ) {
     this.workspaceWorkingSets.get(workingSet.id)?.setItems(filePath)
 
-    await vscode.commands.executeCommand("workingSets.expand", workingSet)
+    await vscode.commands.executeCommand("workingSetsPlus.expand", workingSet)
     this.updateWorkspaceState()
   }
 
@@ -490,7 +497,7 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
     const workspaceFolders = vscode.workspace.workspaceFolders
 
     if (
-      vscode.workspace.getConfiguration("workingSets")
+      vscode.workspace.getConfiguration("workingSetsPlus")
         .saveWorkingSetsInWorkspace &&
       workspaceFolders &&
       workspaceFolders.length
@@ -498,7 +505,7 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
       const fileName = join(
         workspaceFolders[0].uri.fsPath,
         ".vscode",
-        "working_sets.json",
+        "working_sets_plus.json",
       )
 
       try {
@@ -565,20 +572,54 @@ export class WorkingSetsProvider implements vscode.TreeDataProvider<WorkingSetsN
   }
 
   private async openWorkingSetItems(workingSet: WorkingSet) {
-    const workingSetItems = workingSet.getItems()
-    if (workingSetItems.length > 0) {
-      await vscode.commands.executeCommand("workbench.action.closeAllEditors")
+    // Recalculate existence so the tree reflects the current branch context
+    // before opening. All entries are opened regardless of existence status:
+    // files present in the current branch open normally, and VS Code handles
+    // the display for the ones that are not present.
+    workingSet.refreshExistence()
+    this.refresh()
 
-      for (const { resourceUri } of workingSetItems) {
-        await vscode.commands.executeCommand("vscode.open", resourceUri, {
-          preview: false,
-        })
-      }
-    } else {
+    const workingSetItems = workingSet.getAllItems()
+    if (workingSetItems.length === 0) {
       vscode.window.showInformationMessage(
         `"${workingSet.label}" does not have any items to open`,
       )
+      return
     }
+
+    await vscode.commands.executeCommand("workbench.action.closeAllEditors")
+
+    // Warm up the text document cache in parallel so the sequential reveal
+    // below does not block on disk I/O for each file. Failures (e.g. missing
+    // files) are ignored here and handled by vscode.open afterwards.
+    await Promise.all(
+      workingSetItems
+        .filter(({ existsInFileSystem }) => existsInFileSystem)
+        .map(({ resourceUri }) =>
+          Promise.resolve(
+            vscode.workspace.openTextDocument(resourceUri),
+          ).then(
+            () => undefined,
+            () => undefined,
+          ),
+        ),
+    )
+
+    // Reveal the tabs in the working set's order. preserveFocus avoids stealing
+    // focus on every open, which is noticeably faster for larger sets.
+    for (const { resourceUri } of workingSetItems) {
+      await vscode.commands.executeCommand("vscode.open", resourceUri, {
+        preview: false,
+        preserveFocus: true,
+      })
+    }
+  }
+
+  refreshExistence() {
+    for (const workingSet of this.workspaceWorkingSets.values()) {
+      workingSet.refreshExistence()
+    }
+    this.refresh()
   }
 }
 
@@ -587,7 +628,7 @@ export class WorkingSetsExplorer {
 
   constructor(context: vscode.ExtensionContext) {
     const workingSetsProvider = new WorkingSetsProvider(context)
-    this.workingSetsViewer = vscode.window.createTreeView("workingSets", {
+    this.workingSetsViewer = vscode.window.createTreeView("workingSetsPlus", {
       treeDataProvider: workingSetsProvider,
       showCollapseAll: true,
     })
@@ -596,60 +637,73 @@ export class WorkingSetsExplorer {
       workingSetsProvider.updateWorkspaceState()
     })
 
-    vscode.commands.registerCommand("workingSets.create", () =>
+    // Watch each workspace folder's .git/HEAD so that switching branches
+    // recalculates file existence automatically. This is a lightweight,
+    // event-driven check that only runs on branch changes.
+    for (const folder of vscode.workspace.workspaceFolders ?? []) {
+      const headWatcher = vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(folder, ".git/HEAD"),
+      )
+      const onBranchChange = () => workingSetsProvider.refreshExistence()
+      headWatcher.onDidChange(onBranchChange)
+      headWatcher.onDidCreate(onBranchChange)
+      context.subscriptions.push(headWatcher)
+    }
+
+    vscode.commands.registerCommand("workingSetsPlus.create", () =>
       workingSetsProvider.create(),
     )
-    vscode.commands.registerCommand("workingSets.delete", (workingSet) =>
+    vscode.commands.registerCommand("workingSetsPlus.delete", (workingSet) =>
       workingSetsProvider.delete(workingSet),
     )
-    vscode.commands.registerCommand("workingSets.addOpenEditors", () =>
+    vscode.commands.registerCommand("workingSetsPlus.addOpenEditors", () =>
       workingSetsProvider.addOpenEditors(),
     )
     vscode.commands.registerCommand(
-      "workingSets.addActiveEditor",
+      "workingSetsPlus.addActiveEditor",
       (workingSet) => workingSetsProvider.addActiveEditor(workingSet),
     )
-    vscode.commands.registerCommand("workingSets.openAll", (workingSet) =>
+    vscode.commands.registerCommand("workingSetsPlus.openAll", (workingSet) =>
       workingSetsProvider.openAllItems(workingSet),
     )
-    vscode.commands.registerCommand("workingSets.addFile", (fileUri) =>
+    vscode.commands.registerCommand("workingSetsPlus.addFile", (fileUri) =>
       workingSetsProvider.addFile(fileUri),
     )
     vscode.commands.registerCommand(
-      "workingSets.removeFile",
+      "workingSetsPlus.removeFile",
       (workingSetItem) => workingSetsProvider.removeFile(workingSetItem),
     )
-    vscode.commands.registerCommand("workingSets.expand", (workingSet) =>
+    vscode.commands.registerCommand("workingSetsPlus.expand", (workingSet) =>
       this.reveal(workingSet),
     )
-    vscode.commands.registerCommand("workingSets.reload", () =>
+    vscode.commands.registerCommand("workingSetsPlus.reload", () =>
       workingSetsProvider.reload(context),
     )
     vscode.commands.registerCommand(
-      "workingSets.sortWorkingSetsAscending",
+      "workingSetsPlus.sortWorkingSetsAscending",
       () => workingSetsProvider.sortWorkingSets(SortType.ASCENDING),
     )
     vscode.commands.registerCommand(
-      "workingSets.sortWorkingSetsDescending",
+      "workingSetsPlus.sortWorkingSetsDescending",
       () => workingSetsProvider.sortWorkingSets(SortType.DESCENDING),
     )
     vscode.commands.registerCommand(
-      "workingSets.sortFilesAscending",
+      "workingSetsPlus.sortFilesAscending",
       (workingSet) =>
         workingSetsProvider.sortFiles(workingSet, SortType.ASCENDING),
     )
     vscode.commands.registerCommand(
-      "workingSets.sortFilesDescending",
+      "workingSetsPlus.sortFilesDescending",
       (workingSet) =>
         workingSetsProvider.sortFiles(workingSet, SortType.DESCENDING),
     )
     vscode.commands.registerCommand(
-      "workingSets.moveFileUp",
+      "workingSetsPlus.moveFileUp",
       (workingSetItem) =>
         workingSetsProvider.moveFile(workingSetItem, MoveDirection.UP),
     )
     vscode.commands.registerCommand(
-      "workingSets.moveFileDown",
+      "workingSetsPlus.moveFileDown",
       (workingSetItem) =>
         workingSetsProvider.moveFile(workingSetItem, MoveDirection.DOWN),
     )

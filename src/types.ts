@@ -33,6 +33,15 @@ export class WorkingSet extends vscode.TreeItem {
 
   contextValue = "workingSet"
 
+  // Use the same folder icon the workbench renders for workspace root folders.
+  // ThemeIcon.Folder is resolved by the active file icon theme and toggles
+  // between the closed/open folder icon based on the collapsible state.
+  iconPath = vscode.ThemeIcon.Folder
+
+  getAllItems() {
+    return this.items
+  }
+
   getItems() {
     return this.items.filter(({ existsInFileSystem }) => existsInFileSystem)
   }
@@ -49,7 +58,7 @@ export class WorkingSet extends vscode.TreeItem {
     ]
 
     if (
-      vscode.workspace.getConfiguration("workingSets").showNotifications &&
+      vscode.workspace.getConfiguration("workingSetsPlus").showNotifications &&
       newFilePaths.length
     ) {
       vscode.window.showInformationMessage(`File(s) added to "${this.label}"`)
@@ -61,7 +70,9 @@ export class WorkingSet extends vscode.TreeItem {
       this.items = this.items.filter(
         ({ resourceUri: { fsPath } }) => fsPath !== filePath,
       )
-      if (vscode.workspace.getConfiguration("workingSets").showNotifications) {
+      if (
+        vscode.workspace.getConfiguration("workingSetsPlus").showNotifications
+      ) {
         vscode.window.showInformationMessage(
           `"${basename(filePath)}" removed from "${this.label}"`,
         )
@@ -101,6 +112,10 @@ export class WorkingSet extends vscode.TreeItem {
     }
   }
 
+  refreshExistence() {
+    this.items.forEach((item) => item.refreshExistence())
+  }
+
   private hasItem(filePath: string) {
     return this.items.some(({ resourceUri: { fsPath } }) => fsPath === filePath)
   }
@@ -116,6 +131,27 @@ export class WorkingSetItem extends vscode.TreeItem {
     super(resourceUri, vscode.TreeItemCollapsibleState.None)
 
     this.existsInFileSystem = existsSync(resourceUri.fsPath)
+    this.applyExistenceIndication()
+  }
+
+  refreshExistence() {
+    this.existsInFileSystem = existsSync(this.resourceUri.fsPath)
+    this.applyExistenceIndication()
+  }
+
+  private applyExistenceIndication() {
+    if (this.existsInFileSystem) {
+      this.iconPath = undefined
+      this.description = undefined
+      this.contextValue = "workingSetItem"
+    } else {
+      this.iconPath = new vscode.ThemeIcon(
+        "warning",
+        new vscode.ThemeColor("list.warningForeground"),
+      )
+      this.description = "file not found"
+      this.contextValue = "workingSetItemMissing"
+    }
   }
 
   public readonly command: vscode.Command = {
@@ -123,8 +159,6 @@ export class WorkingSetItem extends vscode.TreeItem {
     command: "vscode.open",
     arguments: [this.resourceUri, { preview: false }],
   }
-
-  contextValue = "workingSetItem"
 }
 
 export enum SortType {
